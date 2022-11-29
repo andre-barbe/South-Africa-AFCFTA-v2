@@ -1,16 +1,15 @@
-# This is a sample Python script.
+#This python script runs the STATA script
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import subprocess
+
+## Run STATA Do file
+#To run STATA within python, see https://stackoverflow.com/questions/21263668/run-stata-do-file-from-python and https://www.stata.com/support/faqs/windows/batch-mode/
+#First setup command to run the do file
+name_of_dofile = 'Transfer_results_from_output_folder.do'
+path_to_STATA_exe = 'C:\Program Files\Stata17\StataMP-64' # Don't put this in double quotes! If you do, you get an error. I think this is what kept tripping me up before when I couldn't run STATA from python https://stackoverflow.com/questions/33618656/python-windowserror-error-123-the-filename-directory-name-or-volume-label-s
+cmd = [path_to_STATA_exe, '/b', 'do', name_of_dofile] #Note that I can't add arguments
+# Execute command to run do-file
+print(cmd)
+subprocess.call(cmd)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

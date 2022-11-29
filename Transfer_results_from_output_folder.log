@@ -1,0 +1,374 @@
+
+  ___  ____  ____  ____  ____ ©
+ /__    /   ____/   /   ____/      17.0
+___/   /   /___/   /   /___/       MP—Parallel Edition
+
+ Statistics and Data Science       Copyright 1985-2021 StataCorp LLC
+                                   StataCorp
+                                   4905 Lakeway Drive
+                                   College Station, Texas 77845 USA
+                                   800-STATA-PC        https://www.stata.com
+                                   979-696-4600        stata@stata.com
+
+Stata license: Unlimited-user 4-core network, expiring 16 Dec 2023
+Serial number: 501709310686
+  Licensed to: WBG User
+               World Bank
+
+Notes:
+      1. Stata is running in batch mode.
+      2. Unicode is supported; see help unicode_advice.
+      3. More than 2 billion observations are allowed; see help obs_advice.
+      4. Maximum number of variables is set to 5,000; see help set_maxvar.
+
+
+Running C:\Program Files\Stata17\sysprofile.do ...
+
+. do Transfer_results_from_output_folder.do 
+
+. *********************
+. *This is the STATA do file that actually does all the data cleaning and aggre
+> gation
+. 
+. 
+. **# Paths
+. * Input Folder path for CSV
+.         global input_data_dir "C:\Users\Wb582332\OneDrive - WBG\Sharepoint\Pr
+> ojects\AfCFTA\AfCFTA v2 Results\CSV"
+
+. * Output excel file
+.         global output_data_file "C:\Modeling\Rwanda-AFCFTA-v2\Excel-CGE-Resul
+> ts-Rwanda.xlsx"
+
+. 
+. * List of simulations to keep
+. *Need to use ` before and ' after expression to tell STATA that this local co
+> ntains quotes
+. *See https://www.stata.com/statalist/archive/2013-03/msg01071.html
+. *AfCFTAR          = AfCFTA Trade
+. *AfCFTAsavpta = AfCFTA Broad
+. *BaU                  = Baseline
+. *AfCFTAsavtcst = AfCFTA Deep
+. local sims_to_keep `""BaU","AfCFTAR","AfCFTARsavpta","AfCFTARsavtcst""'
+
+. 
+. *List of year to used
+. local year_to_keep 2035
+
+. 
+. *region_to_keep_in_giddlab
+. local region_to_keep_in_giddlab "RWA"
+
+. 
+. *Aggregation options
+. local flag_agg_region=0
+
+. 
+. *Options for only running part of file, for debugging
+. local run_output_data_part 1
+
+. local run_bilat_data_part 1
+
+. local run_giddlab_data_part 1
+
+. 
+. 
+. *****************************************************************************
+> ***
+. *Trade.csv and Output.csv
+. *****************************************************************************
+> ***
+. if `run_output_data_part'==1 {
+. *Rename export and import tax
+. tempfile temp
+. import delimited "$input_data_dir\Trade.csv", clear
+(encoding automatically selected: ISO-8859-2)
+(6 vars, 1,782,846 obs)
+. replace var="mtax_trd" if var=="mtax"
+(198,246 real changes made)
+. replace var="etax_trd" if var=="etax"
+(197,676 real changes made)
+. save `temp', replace
+(file C:\Users\Wb582332\AppData\Local\Temp\ST_481c_000001.tmp not found)
+file C:\Users\Wb582332\AppData\Local\Temp\ST_481c_000001.tmp saved as .dta
+    format
+. 
+. *rename activities to commodities
+. import delimited "$input_data_dir\Output.csv", clear
+(encoding automatically selected: ISO-8859-2)
+(6 vars, 990,090 obs)
+. gen commodity=substr(activit,1,4)
+. replace commodity=subinstr(commodity,"-","",1)
+(799,140 real changes made)
+. replace commodity=commodity+"-c"
+variable commodity was str4 now str6
+(990,090 real changes made)
+. drop activity
+. append using `temp'
+(variable var was str3, now str9 to accommodate using data's values)
+. save `temp', replace
+file C:\Users\Wb582332\AppData\Local\Temp\ST_481c_000001.tmp saved as .dta
+    format
+. 
+. *Create total commodity from gdpop file
+. import delimited "$input_data_dir\gdppop.csv", clear
+(encoding automatically selected: ISO-8859-2)
+(5 vars, 343,710 obs)
+. gen commodity="ttot-c"
+. append using `temp'
+. 
+. *Keep data only for specified simulations
+. keep if inlist(sim, `sims_to_keep')
+(1,038,882 observations deleted)
+. 
+. rename value v
+. drop if year<2018
+(218,712 observations deleted)
+. save `temp', replace
+file C:\Users\Wb582332\AppData\Local\Temp\ST_481c_000001.tmp saved as .dta
+    format
+. 
+. **********************
+. **Sector aggregation
+. **********************
+. * I am no longer doing sectoral aggregation so this is very simple
+. 
+. *Define com2
+. gen com2=commodity
+. 
+. *Collapse commodities into assigned aggregated commodities
+. collapse (sum) v, by( var sim region year com2)
+. rename com2 commodity
+. 
+. 
+. **********************
+. **Unit test to check if double counting after sectoral aggregation
+. **********************
+. 
+. *Count number of entries. This should be 1
+. count if sim=="BaU" & year==`year_to_keep' & var=="xp" & commodity=="AGR-c" &
+>  region=="BFA"
+  1
+. 
+. *Save count result to a scalar
+. scalar test_count = r(N)
+. 
+. *Deletes the data set if fails unit test
+. *need to use "=" before scalars as described in https://stackoverflow.com/que
+> stions/27515636/using-scalar-value-in-stata
+. if `=test_count'!=1 {
+.     clear
+.     display "Error: unit test 1 failed"
+.     exit
+. }
+. 
+. 
+. **********************
+. **Regional Aggregation
+. **********************
+. 
+. **** Disabled regional aggregation in this version at Maryla's request
+. ***** Define regional aggregation************************
+. if `flag_agg_region'==1 {
+.     foreach var in region {
+  2.         replace `var'="XLC" if inlist(`var',"BRA","MEX")
+  3.         *replace `var'="XSA" if inlist(`var',"IND")
+.         replace `var'="XEA" if inlist(`var',"MYS","PHL","THA","VNM")
+  4. 
+.         *Andre modifies `var' variable replacement
+.         //ZAF is no longer aggregated with rest of XSS
+.         *replace `var'="XSS" if inlist(`var',"ZAF","NGA","RWA")
+.         replace `var'="SSA" if inlist(`var',"NGA","RWA","XEC") //XEC is rest 
+> of East Africa
+  5. 
+.         //TUR is now lumped in with rest of middle east. I checked in the exc
+> el to check that XMN is the right `var'
+.         //It is ok to add `var's to an aggregated `var', the collapse takes c
+> are of that
+.         replace `var' ="XEC" if inlist(`var', "TUR")
+  6.         *end modified by Andre
+. 
+.         //Middle East has Egypt
+.         replace `var' ="XMN" if inlist(`var', "EGY")
+  7. 
+.         //South Asia has Indonesia
+.         replace `var'="XSA" if inlist(`var',"IDN")
+  8. 
+.         //do not use ROW region as that causes problems
+.     }
+. }
+. 
+. 
+. 
+. *Aggregates regions into aggregate regions
+. collapse (sum) v, by( var sim region year commodity)
+. 
+. 
+. *Final data exporting
+. reshape wide v, i( var sim commodity year) j(region) s
+(j = BFA BWA CHN CIV CMR COD COM EGY ETH GHA KEN MAR MDG MOZ MUS MWI NAM NGA RW
+> A SEN TUN TZA UGA USA XCF XEA XEC XNF XSC XWF ZAF ZMB ZWE cen eac ecc eco iga
+>  row sac sad tafr tafx tcaf tcen tcom teac teaf tecc teco thic tiga tlmx tnaf
+>  tsac tsad tsaf tssa tssx tuma twaf twax twld twxa twxs uma weu)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations        1,859,052   ->   27,812      
+Number of variables                   6   ->   71          
+j variable (67 values)           region   ->   (dropped)
+xij variables:
+                                      v   ->   vBFA vBWA ... vweu
+-----------------------------------------------------------------------------
+. gen ind=var+sim+ commodity+ string(year)
+. order ind
+. 
+. **********************
+. **Final export of data
+. **********************
+. 
+. export excel using "$output_data_file", sheet("Data_output_csv") sheetreplace
+>  firstrow(variables)
+file C:\Modeling\Rwanda-AFCFTA-v2\Excel-CGE-Results-Rwanda.xlsx saved
+. }
+
+. 
+. *****************************************************************************
+> *******************************************
+. *Bilateral trade data (bilat.csv)
+. *****************************************************************************
+> *******************************************
+. if `run_bilat_data_part'==1 {
+. 
+. tempfile temp
+. import delimited "$input_data_dir\\bilat.csv", clear
+(encoding automatically selected: ISO-8859-2)
+(7 vars, 19,836,180 obs)
+. 
+. *Keep data only for specified simulations
+. keep if inlist(sim, `sims_to_keep')
+(6,612,060 observations deleted)
+. 
+. rename value v
+. keep if year==`year_to_keep'
+(8,816,080 observations deleted)
+. keep if inlist(var,"XWd_d","XWs_d")
+(3,526,432 observations deleted)
+. 
+. **********************
+. **Sectoral aggregation
+. **********************
+. 
+. * I am keeping all commodities so there is nothing here
+. 
+. *keep if commodity=="ttot-c"
+. 
+. **********************
+. **Create total exports and imports
+. **********************
+. 
+. rename source ctry1
+. rename destination ctry2
+. preserve
+. keep if inlist(var,"XWs_d")
+(440,804 observations deleted)
+. save `temp', replace
+(file C:\Users\Wb582332\AppData\Local\Temp\ST_481c_000002.tmp not found)
+file C:\Users\Wb582332\AppData\Local\Temp\ST_481c_000002.tmp saved as .dta
+    format
+. restore
+. keep if inlist(var,"XWd_d")
+(440,804 observations deleted)
+. rename ctry1 ctry
+. rename ctry2 ctry1
+. rename ctry ctry2
+. append using `temp'
+. order var sim ctry1 commodity ctry2  year
+. save `temp', replace
+file C:\Users\Wb582332\AppData\Local\Temp\ST_481c_000002.tmp saved as .dta
+    format
+. 
+. *Aggregate regions
+. collapse (sum) v, by( var sim ctry1 commodity ctry2 year)
+. 
+. *Reshape data to wide
+. reshape wide v, i( var sim ctry1 commodity year) j( ctry2) s
+(j = BFA BWA CHN CIV CMR COD COM EGY ETH GHA KEN MAR MDG MOZ MUS MWI NAM NGA RW
+> A SEN TUN TZA UGA USA XCF XEA XEC XNF XSC XWF ZAF ZMB ZWE cen eac ecc eco iga
+>  row sac sad tafr tafx tcaf tcen tcom teac teaf tecc teco thic tiga tlmx tnaf
+>  tsac tsad tsaf tssa tssx tuma twaf twax twld twxa twxs uma weu)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations          881,608   ->   13,892      
+Number of variables                   7   ->   72          
+j variable (67 values)            ctry2   ->   (dropped)
+xij variables:
+                                      v   ->   vBFA vBWA ... vweu
+-----------------------------------------------------------------------------
+. 
+. *Put industries in the right order
+. gen ind=var+sim+ctry1+commodity+string(year)
+. order ind
+. 
+. 
+. *Export final data
+. export excel using "$output_data_file", sheet("Data_bilat_csv") sheetreplace 
+> firstrow(variables)
+file C:\Modeling\Rwanda-AFCFTA-v2\Excel-CGE-Results-Rwanda.xlsx saved
+. }
+
+. 
+. 
+. *****************************************************************************
+> *******************************************
+. *Employment Data (GIDDLAB.csv)
+. *****************************************************************************
+> *******************************************
+. if `run_giddlab_data_part'==1 {
+. 
+. *Load GIDDLab.csv
+. tempfile temp
+. import delimited "$input_data_dir\\GIDDLab.csv", clear
+(encoding automatically selected: ISO-8859-2)
+(7 vars, 1,627,920 obs)
+. 
+. *Keep data only for specified simulations
+. keep if inlist(sim, `sims_to_keep')
+(542,640 observations deleted)
+. 
+. *Keep data only for specified year
+. keep if year==`year_to_keep'
+(1,028,160 observations deleted)
+. 
+. *Keep data only for specified region code
+. keep if region=="`region_to_keep_in_giddlab'"
+(55,440 observations deleted)
+. 
+. *Reshape data to wide, with sims along the rows
+. * "string" means that string values are allowed
+. reshape wide value, i(var region lab act year) j(sim) string
+(j = AfCFTAR AfCFTARsavpta AfCFTARsavtcst BaU)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations            1,680   ->   420         
+Number of variables                   7   ->   9           
+j variable (4 values)               sim   ->   (dropped)
+xij variables:
+                                  value   ->   valueAfCFTAR valueAfCFTARsavpta 
+> ... valueBaU
+-----------------------------------------------------------------------------
+. 
+. *generate single id variable for use in vlookup in excel
+. gen id=var+region+lab+act+string(year)
+. *Put id variable first as that is what vlookup requires
+. order id
+. 
+. *Export final data
+. export excel using "$output_data_file", sheet("Data_giddlab_csv") sheetreplac
+> e firstrow(variables)
+file C:\Modeling\Rwanda-AFCFTA-v2\Excel-CGE-Results-Rwanda.xlsx saved
+. }
+
+. 
+end of do-file
