@@ -6,7 +6,8 @@
 * Input Folder path for CSV
 	global input_data_dir "C:\Users\Wb582332\OneDrive - WBG\Sharepoint\Projects\AfCFTA\AfCFTA v2 Results\CSV"
 * Output excel file
-	global output_data_file "C:\Modeling\Rwanda-AFCFTA-v2\Excel-CGE-Results-Rwanda.xlsx"
+* This line needs to be modified when changing countries. Currently set to South Africa
+	global output_data_file "C:\Modeling\South-Africa-AFCFTA-v2\Excel-CGE-Results-South-Africa.xlsx"
 
 * List of simulations to keep
 *Need to use ` before and ' after expression to tell STATA that this local contains quotes
@@ -21,7 +22,8 @@ local sims_to_keep `""BaU","AfCFTAR","AfCFTARsavpta","AfCFTARsavtcst""'
 local year_to_keep 2035
 
 *region_to_keep_in_giddlab
-local region_to_keep_in_giddlab "RWA"
+* specify region of country I'm looking at ZAF is South Africa
+local region_to_keep_in_giddlab "ZAF"
 
 *Aggregation options
 local flag_agg_region=0

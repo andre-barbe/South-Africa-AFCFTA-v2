@@ -19,3 +19,4 @@ Changelog:
 Various date: many forks
 2022-09-12: Forked from India code
 2022-09-27: Forked from Zambia to create Rwanda
+2022-11-29: Forked from Rwanda to Create South Africa
