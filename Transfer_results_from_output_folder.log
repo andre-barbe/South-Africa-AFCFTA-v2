@@ -34,7 +34,7 @@ Running C:\Program Files\Stata17\sysprofile.do ...
 . **# Paths
 . * Input Folder path for CSV
 .         global input_data_dir "C:\Users\Wb582332\OneDrive - WBG\Sharepoint\Pr
-> ojects\AfCFTA\AfCFTA v2 Results\CSV"
+> ojects\AfCFTA\AfCFTA v2 Results\CSV from AfCFTAtest"
 
 . * Output excel file
 . * This line needs to be modified when changing countries. Currently set to So
@@ -92,8 +92,8 @@ Running C:\Program Files\Stata17\sysprofile.do ...
 . replace var="etax_trd" if var=="etax"
 (197,676 real changes made)
 . save `temp', replace
-(file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000001.tmp not found)
-file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000001.tmp saved as .dta
+(file C:\Users\Wb582332\AppData\Local\Temp\ST_5ca4_000001.tmp not found)
+file C:\Users\Wb582332\AppData\Local\Temp\ST_5ca4_000001.tmp saved as .dta
     format
 . 
 . *rename activities to commodities
@@ -110,7 +110,7 @@ variable commodity was str4 now str6
 . append using `temp'
 (variable var was str3, now str9 to accommodate using data's values)
 . save `temp', replace
-file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000001.tmp saved as .dta
+file C:\Users\Wb582332\AppData\Local\Temp\ST_5ca4_000001.tmp saved as .dta
     format
 . 
 . *Create total commodity from gdpop file
@@ -128,7 +128,7 @@ file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000001.tmp saved as .dta
 . drop if year<2018
 (218,712 observations deleted)
 . save `temp', replace
-file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000001.tmp saved as .dta
+file C:\Users\Wb582332\AppData\Local\Temp\ST_5ca4_000001.tmp saved as .dta
     format
 . 
 . **********************
@@ -276,8 +276,8 @@ file C:\Modeling\South-Africa-AFCFTA-v2\Excel-CGE-Results-South-Africa.xlsx sav
 . keep if inlist(var,"XWs_d")
 (440,804 observations deleted)
 . save `temp', replace
-(file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000002.tmp not found)
-file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000002.tmp saved as .dta
+(file C:\Users\Wb582332\AppData\Local\Temp\ST_5ca4_000002.tmp not found)
+file C:\Users\Wb582332\AppData\Local\Temp\ST_5ca4_000002.tmp saved as .dta
     format
 . restore
 . keep if inlist(var,"XWd_d")
@@ -288,7 +288,7 @@ file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000002.tmp saved as .dta
 . append using `temp'
 . order var sim ctry1 commodity ctry2  year
 . save `temp', replace
-file C:\Users\Wb582332\AppData\Local\Temp\ST_b64_000002.tmp saved as .dta
+file C:\Users\Wb582332\AppData\Local\Temp\ST_5ca4_000002.tmp saved as .dta
     format
 . 
 . *Aggregate regions

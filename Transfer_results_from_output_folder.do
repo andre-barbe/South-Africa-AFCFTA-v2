@@ -4,7 +4,7 @@
 
 **# Paths
 * Input Folder path for CSV
-	global input_data_dir "C:\Users\Wb582332\OneDrive - WBG\Sharepoint\Projects\AfCFTA\AfCFTA v2 Results\CSV"
+	global input_data_dir "C:\Users\Wb582332\OneDrive - WBG\Sharepoint\Projects\AfCFTA\AfCFTA v2 Results\CSV from AfCFTAtest"
 * Output excel file
 * This line needs to be modified when changing countries. Currently set to South Africa
 	global output_data_file "C:\Modeling\South-Africa-AFCFTA-v2\Excel-CGE-Results-South-Africa.xlsx"
